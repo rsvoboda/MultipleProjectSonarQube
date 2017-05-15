@@ -7,9 +7,16 @@ Running SonarQube on Multiple Project (Not Multiple Module)
    - as separate SonarQube projects
    - as one big SonarQube project
 3) run SonarQube analysis (one big SonarQube project) on all the dependencies of jbossws-cxf-client
-   - using Sonar Maven Plugin
-   - using Sonar Runner
+   - using SonarQube Scanner for Maven
+   - using SonarQube Runner
+   - using SonarQube Scanner CLI
+   - using SonarLint
 4) run SonarQube analysis (one big SonarQube project) on all the dependencies of WildFly
+5) SonarQube and PostgreSQL in Docker for quick production-like setup in different environments
+6) SonarQube + JaCoCo test coverage details for one project
+7) SonarQube + several JaCoCo test coverage files + one big SonarQube project
+8) SonarQube + get maven dependencies + decompile jars (some artifacts do not have sources available - e.g. asm)
+9) SonarQube analysis of tests, detection of dedicated tests modules
 
 ### Step 1 - Analysis on WildFly sources
 ```bash
@@ -83,7 +90,10 @@ done
 firefox http://localhost:9000/
 ```
 
-### Step 2b) - Analysis of all dependencies for jbossws-cxf-client in one big SonarQube project
+### Step 2b) - Analysis of jbossws-* dependencies for jbossws-cxf-client in one big SonarQube project
+Skipped in favor of Step 3a) which is superset of this step.
+
+### Step 3a) - Analysis of all dependencies for jbossws-cxf-client in one big SonarQube project
 ```bash
 rm -rf workspace && mkdir workspace
 

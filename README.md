@@ -183,3 +183,31 @@ firefox http://localhost:9000/
 ```
 Note: exclude because of http://stackoverflow.com/questions/43962471/sonarqube-analysis-of-guava-v18-internalprefixunaryexpression-cannot-be-cast-t
 Follow-up: https://jira.sonarsource.com/browse/SONARJAVA-2140 has been fixed in version 4.6 of SonarJava analyzer. Bundled version with SonarQube 6.3.1 is 4.5, upgrading it via http://127.0.0.1:9000/updatecenter/updates to latest version (4.9 at time of writing) helps.
+
+### Step 3b) - ...
+
+### Step 4) - ...
+
+### Step 5) SonarQube and PostgreSQL in Docker
+Steps for quick production-like setup in different environments, based on official sonarqube image https://hub.docker.com/_/sonarqube/
+
+Run SonarQube on PostgreSQL
+```bash
+docker-compose -f docker-compose-complex-config.yml up ## add -d to run in detached mode - containers in the background
+```
+Backup / Restore Sonar data
+```bash
+## Backup Sonar data using docker exec
+docker exec -t downloads_db_1 pg_dumpall -c -U postgres > sonar_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+
+## Backup Sonar data using docker-compose exec
+docker-compose exec db pg_dumpall -c -U postgres > sonar_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+
+## Restore Sonar data
+cat your_sonar_dump.sql | docker exec -i downloads_db_1 psql -U postgres
+```
+Analyse your project as usual
+```bash
+mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/
+```
+Note: many guides recommend to add `-Dsonar.jdbc.url=jdbc:postgresql://<MACHINE-IP>/sonar` but it was not necessary in my case

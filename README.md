@@ -211,3 +211,21 @@ Analyse your project as usual
 mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/
 ```
 Note: many guides recommend to add `-Dsonar.jdbc.url=jdbc:postgresql://<MACHINE-IP>/sonar` but it was not necessary in my case
+
+**Some helper commands for wirk with Docker:**
+```bash
+# Stop all containers
+docker stop $(docker ps -a -q)
+
+# Delete all containers
+docker rm $(docker ps -a -q)
+
+# Delete all images
+docker rmi $(docker images -q)
+
+# Delete all volumes
+docker volume rm $(docker volume ls -q)
+
+# Inspect volume
+docker volume inspect downloads_sonarqube_conf
+```

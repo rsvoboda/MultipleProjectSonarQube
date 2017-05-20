@@ -93,7 +93,7 @@ firefox http://localhost:9000/
 ### Step 2b) - Analysis of jbossws-* dependencies for jbossws-cxf-client in one big SonarQube project
 Skipped in favor of Step 3a) which is superset of this step.
 
-### Step 3a) - Analysis of all dependencies for jbossws-cxf-client in one big SonarQube project
+### Step 3a) - Analysis of jbossws-cxf-client and dependencies in one big project using SonarQube Scanner for Maven
 ```bash
 rm -rf workspace && mkdir workspace
 
@@ -184,9 +184,13 @@ firefox http://localhost:9000/
 Note: exclude because of http://stackoverflow.com/questions/43962471/sonarqube-analysis-of-guava-v18-internalprefixunaryexpression-cannot-be-cast-t
 Follow-up: https://jira.sonarsource.com/browse/SONARJAVA-2140 has been fixed in version 4.6 of SonarJava analyzer. Bundled version with SonarQube 6.3.1 is 4.5, upgrading it via http://127.0.0.1:9000/updatecenter/updates to latest version (4.9 at time of writing) helps.
 
-### Step 3b) - ...
+### Step 3b) - Analysis of jbossws-cxf-client and dependencies in one big project using SonarQube Runner
 
-### Step 4) - ...
+### Step 3c) - Analysis of jbossws-cxf-client and dependencies in one big project using SonarQube Scanner CLI
+
+### Step 3d) - Analysis of jbossws-cxf-client and dependencies in one big project using SonarLint
+
+### Step 4) - Analysis of WildFly and all dependencies in one big project
 
 ### Step 5) SonarQube and PostgreSQL in Docker
 Steps for quick production-like setup in different environments, based on official sonarqube image https://hub.docker.com/_/sonarqube/
@@ -229,3 +233,10 @@ docker volume rm $(docker volume ls -q)
 # Inspect volume
 docker volume inspect downloads_sonarqube_conf
 ```
+### Step 6) SonarQube + JaCoCo test coverage details for project
+
+### Step 7) SonarQube + several JaCoCo test coverage files + one big SonarQube project
+
+### Step 8) SonarQube + get maven dependencies + decompile jars (some artifacts do not have sources available - e.g. asm)
+
+### Step 9) SonarQube analysis of tests, detection of dedicated tests modules

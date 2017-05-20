@@ -1,6 +1,27 @@
 # MultipleProjectSonarQube
 Running SonarQube on Multiple Project (Not Multiple Module)
 
+## Table of Contents
+
+  * [Experiment plan](#experiment-plan)
+  * [Step 1 Analysis on WildFly sources](#step-1-analysis-on-wildfly-sources)
+  * SonarQube analysis on jbossws-* dependencies of jbossws-cxf-client
+      * [Step 2a) jbossws-* dependencies of jbossws-cxf-client in separate projects](#step-2a-jbossws--dependencies-of-jbossws-cxf-client-in-separate-projects)
+      * [Step 2b) jbossws-* dependencies for jbossws-cxf-client in one big project](#step-2b-jbossws--dependencies-for-jbossws-cxf-client-in-one-big-project)
+  * SonarQube analysis (one big project) on all the dependencies of jbossws-cxf-client
+      * [Step 3a) jbossws-cxf-client   dependencies using SonarQube Scanner for Maven](#step-3a-jbossws-cxf-client--dependencies-using-sonarqube-scanner-for-maven)
+      * [Step 3b) jbossws-cxf-client   dependencies using SonarQube Runner](#step-3b-jbossws-cxf-client--dependencies-using-sonarqube-runner)
+      * [Step 3c) jbossws-cxf-client   dependencies using SonarQube Scanner CLI](#step-3c-jbossws-cxf-client--dependencies-using-sonarqube-scanner-cli)
+      * [Step 3d) jbossws-cxf-client   dependencies using SonarLint](#step-3d-jbossws-cxf-client--dependencies-using-sonarlint)
+  * [Step 4) WildFly and all dependencies in one big project](#step-4-wildfly-and-all-dependencies-in-one-big-project)
+  * [Step 5) SonarQube and PostgreSQL in Docker](#step-5-sonarqube-and-postgresql-in-docker)
+  * [Step 6) JaCoCo test coverage details for project](#step-6-jacoco-test-coverage-details-for-project)
+  * [Step 7) Several JaCoCo test coverage files   one big project](#step-7-several-jacoco-test-coverage-files--one-big-project)
+  * [Step 8) SonarQube   get maven dependencies   decompile jars](#step-8-sonarqube--get-maven-dependencies--decompile-jars)
+  * [Step 9) SonarQube analysis of tests, detection of dedicated tests modules](#step-9-sonarqube-analysis-of-tests-detection-of-dedicated-tests-modules)
+
+Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
+
 ## Experiment plan
 1) run SonarQube analysis on source from big project like https://github.com/wildfly/wildfly
 2) run SonarQube analysis on jbossws-* dependencies of jbossws-cxf-client
@@ -90,10 +111,10 @@ done
 firefox http://localhost:9000/
 ```
 
-## Step 2b) jbossws-* dependencies for jbossws-cxf-client in one big SonarQube project
+## Step 2b) jbossws-* dependencies for jbossws-cxf-client in one big project
 Skipped in favor of Step 3a) which is superset of this step.
 
-## Step 3a) jbossws-cxf-client and dependencies in one big project using SonarQube Scanner for Maven
+## Step 3a) jbossws-cxf-client + dependencies using SonarQube Scanner for Maven
 ```bash
 rm -rf workspace && mkdir workspace
 
@@ -184,11 +205,11 @@ firefox http://localhost:9000/
 Note: exclude because of http://stackoverflow.com/questions/43962471/sonarqube-analysis-of-guava-v18-internalprefixunaryexpression-cannot-be-cast-t
 Follow-up: https://jira.sonarsource.com/browse/SONARJAVA-2140 has been fixed in version 4.6 of SonarJava analyzer. Bundled version with SonarQube 6.3.1 is 4.5, upgrading it via http://127.0.0.1:9000/updatecenter/updates to latest version (4.9 at time of writing) helps.
 
-## Step 3b) jbossws-cxf-client and dependencies in one big project using SonarQube Runner
+## Step 3b) jbossws-cxf-client + dependencies using SonarQube Runner
 
-## Step 3c) jbossws-cxf-client and dependencies in one big project using SonarQube Scanner CLI
+## Step 3c) jbossws-cxf-client + dependencies using SonarQube Scanner CLI
 
-## Step 3d) jbossws-cxf-client and dependencies in one big project using SonarLint
+## Step 3d) jbossws-cxf-client + dependencies using SonarLint
 
 ## Step 4) WildFly and all dependencies in one big project
 

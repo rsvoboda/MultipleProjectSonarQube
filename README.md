@@ -212,7 +212,23 @@ SonarQube Runner is deprecated, latest release April 2014 targeted for SonarQube
 ## Step 3c) jbossws-cxf-client + dependencies using SonarQube Scanner CLI
 
 ## Step 3d) jbossws-cxf-client + dependencies using SonarLint
+SonarLint is has 2 flavors - an extension to your favorite IDE and Command Line tool. For details see
+http://www.sonarlint.org/ and http://www.sonarlint.org/commandline/index.html. SonarLint provides on-the-fly
+feedback on new bugs and quality issues injected into the code, no server instance is needed.
 
+```bash
+wget -O workspace/sonarlint-cli-2.1.0.566.zip https://bintray.com/sonarsource/Distribution/download_file?file_path=sonarlint-cli%2Fsonarlint-cli-2.1.0.566.zip
+unzip -q -d workspace workspace/sonarlint-cli-2.1.0.566.zip && rm workspace/sonarlint-cli-2.1.0.566.zip
+
+git clone --branch jbossws-cxf-5.1.8.Final https://github.com/jbossws/jbossws-cxf.git workspace/jbossws-cxf
+
+cd workspace/jbossws-cxf
+../sonarlint-cli-2.1.0.566/bin/sonarlint
+du -h .sonarlint/sonarlint-report.html
+links .sonarlint/sonarlint-report.html ## firefox, chrome
+
+cd -
+```
 
 ## Step 4) WildFly and all dependencies in one big project
 

@@ -259,6 +259,32 @@ docker volume inspect downloads_sonarqube_conf
 ## Step 7) Several JaCoCo test coverage files + one big project
 
 ## Step 8) SonarQube + get maven dependencies + decompile jars 
-some artifacts do not have sources available - e.g. asm
+Some artifacts do not have sources available - e.g. asm and thus some workaround needs to be applied.
+Maven can easily fetch jar file with compiled classes, thus decompilation seems like the right way.
+Getting sources from component repository can be problematic as one would need to maintain list of
+source repositories for components. And on top of that one needs logic to get tag name from component version.
+
+There are several options for decompilers, 3 which I evaluated are:
+ * https://bitbucket.org/mstrobel/procyon/downloads/
+ * http://jd.benow.ca/
+ * http://www.benf.org/other/cfr/
+
+Both Procyon and JD-GUI have last release from August 2015.
+CFR is still active, last release is 1 month old. Java 8 support, author works on Java 9 improvements.
+
+```bash
+wget -O workspace/cfr_0_121.jar  http://www.benf.org/other/cfr/cfr_0_121.jar
+
+mvn dependency:unpack -Dartifact=$GAV:jar:sources -DoutputDirectory=workspace/wf/wf-all-in-one/$MODULE/src/main/java
+if [ $? -gt 0 ]
+then
+  mvn dependency:copy -Dartifact=$GAV:jar -DoutputDirectory=workspace/wf/tmp
+  java -jar workspace/cfr_0_121.jar workspace/wf/tmp/`echo $GAV | cut -d: -f2- | tr ":" "-"`.jar \
+     --outputdir workspace/wf/wf-all-in-one/$MODULE/src/main/java
+fi
+```
+
+Instead of `mvn dependency:copy -Dartifact=$GAV` one can use `mvn dependency:copy-dependencies` to fetch all
+dependencies of the project into the target directory.
 
 ## Step 9) SonarQube analysis of tests, detection of dedicated tests modules

@@ -206,10 +206,13 @@ Note: exclude because of http://stackoverflow.com/questions/43962471/sonarqube-a
 Follow-up: https://jira.sonarsource.com/browse/SONARJAVA-2140 has been fixed in version 4.6 of SonarJava analyzer. Bundled version with SonarQube 6.3.1 is 4.5, upgrading it via http://127.0.0.1:9000/updatecenter/updates to latest version (4.9 at time of writing) helps.
 
 ## Step 3b) jbossws-cxf-client + dependencies using SonarQube Runner
+According to https://docs.sonarqube.org/display/SONARQUBE45/Installing+and+Configuring+SonarQube+Runner
+SonarQube Runner is deprecated, latest release April 2014 targeted for SonarQube version 4.5.x.
 
 ## Step 3c) jbossws-cxf-client + dependencies using SonarQube Scanner CLI
 
 ## Step 3d) jbossws-cxf-client + dependencies using SonarLint
+
 
 ## Step 4) WildFly and all dependencies in one big project
 

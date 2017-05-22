@@ -210,6 +210,19 @@ According to https://docs.sonarqube.org/display/SONARQUBE45/Installing+and+Confi
 SonarQube Runner is deprecated, latest release April 2014 targeted for SonarQube version 4.5.x.
 
 ## Step 3c) jbossws-cxf-client + dependencies using SonarQube Scanner CLI
+```bash
+wget -O workspace/sonar-scanner-cli-3.0.3.778-linux.zip https://sonarsource.bintray.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.0.3.778-linux.zip
+unzip -q -d workspace workspace/sonar-scanner-cli-3.0.3.778-linux.zip && rm workspace/sonar-scanner-cli-3.0.3.778-linux.zip
+
+git clone --branch jbossws-cxf-5.1.8.Final https://github.com/jbossws/jbossws-cxf.git workspace/jbossws-cxf
+
+workspace/sonar-scanner-3.0.3.778-linux/bin/sonar-scanner
+
+cd workspace/jbossws-cxf
+../sonar-scanner-3.0.3.778-linux/bin/sonar-scanner -Dsonar.projectKey="my:project" -Dsonar.projectName="My project" -Dsonar.projectVersion="1.0" -Dsonar.sources=. -Dsonar.sourceEncoding="UTF-8"
+
+cd -
+```
 
 ## Step 3d) jbossws-cxf-client + dependencies using SonarLint
 SonarLint is has 2 flavors - an extension to your favorite IDE and Command Line tool. For details see

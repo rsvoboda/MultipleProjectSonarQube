@@ -290,6 +290,46 @@ docker volume inspect downloads_sonarqube_conf
 
 ## Step 7) Several JaCoCo test coverage files + one big project
 
+### Merge several JaCoCo .exec files
+Steps using Maven 3
+```bash
+cd directory/with/jacoco/exec/files
+cat <<EOF > pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.experiments.rsvoboda</groupId>
+    <artifactId>JaCoCoMerge</artifactId>
+    <version>1.0.0</version>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <configuration>
+                    <fileSets>
+                        <fileSet>
+                            <!--directory>\${project.build.directory}/jacoco-execs/</directory-->
+                            <directory>\${project.basedir}</directory>
+                            <includes>
+                                <include>*.exec</include>
+                            </includes>
+                        </fileSet>
+                    </fileSets>
+                    <destFile>\${project.basedir}/jacoco-merged.exec</destFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+EOF
+mvn jacoco:merge
+```
+Note: Be aware of backslash before $ to avoid shell expansion if you want to do copy&paste.
+
 ## Step 8) SonarQube + get maven dependencies + decompile jars 
 Some artifacts do not have sources available - e.g. asm and thus some workaround needs to be applied.
 Maven can easily fetch jar file with compiled classes, thus decompilation seems like the right way.

@@ -244,6 +244,132 @@ cd -
 ```
 
 ## Step 4) WildFly and all dependencies in one big project
+This step expects running SonarQube running in configuration with high Heap Space usage.
+Run on machine which has 6GB of available memory.
+Just upload of data takes 45 minutes on my Lenovo T440s, postprocessing on SonarQube takes 20-30 minutes.
+
+There are some limitations I noticed with this big experiment:
+ * High memory usage for Web Server and Compute Engine parts of SonarQube, had to monitor JVM to get the right setting
+ * all-in-one module and sub-modules must have unique identifier / GAV otherwise you will get error like this:
+    * Module "org.experiments.rsvoboda:commons-lang-commons-lang-2.6" is already part of project "org.experiments.rsvoboda:jbossws-all-in-one"
+ * Using Docker way it is not easy to tune JVM for Compute Engine, Web Server can be tuned using SONARQUBE_WEB_JVM_OPTS
+    * https://github.com/SonarSource/docker-sonarqube/issues/83
+    * You can see `Caused by: org.postgresql.util.PSQLException: Ran out of memory retrieving query results.` in log of background tasks
+
+```bash
+wget -O workspace/sonarqube-6.3.1.zip https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-6.3.1.zip
+unzip -q -d workspace/ workspace/sonarqube-6.3.1.zip
+
+echo "" >> workspace/sonarqube-6.3.1/conf/sonar.properties
+echo "sonar.web.javaOpts=-Xmx3072m -Xms1024m -XX:+HeapDumpOnOutOfMemoryError" >> workspace/sonarqube-6.3.1/conf/sonar.properties
+echo "sonar.ce.javaOpts=-Xmx2048m -Xms512m -XX:+HeapDumpOnOutOfMemoryError" >> workspace/sonarqube-6.3.1/conf/sonar.properties
+
+workspace/sonarqube-6.3.1/bin/linux-x86-64/sonar.sh start
+sleep 10
+
+wget -O workspace/cfr_0_121.jar  http://www.benf.org/other/cfr/cfr_0_121.jar
+
+rm -rf workspace/wf && mkdir workspace/wf
+git clone https://github.com/wildfly/wildfly.git workspace/wf/wildfly
+mvn -f workspace/wf/wildfly/pom.xml -fn clean install -Dmaven.test.failure.ignore=true -Dtest=NONE -DfailIfNoTests=false
+WF_VERSION=`mvn -f workspace/wf/wildfly/pom.xml help:evaluate -Dexpression=project.version | grep -v "^\["`
+WF_CORE_VERSION=`mvn -f workspace/wf/wildfly/pom.xml help:evaluate -Dexpression=version.org.wildfly.core | grep -v "^\["`
+echo "${WF_VERSION} - ${WF_CORE_VERSION}"
+
+cat <<EOF > workspace/wf/wf-all-pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.wildfly</groupId>
+  <artifactId>wildfly-all-deps</artifactId>
+  <version>1.0.0.Final</version>
+
+  <properties>
+      <wildfly-version>${WF_VERSION}</wildfly-version>
+      <wildfly-core-version>${WF_CORE_VERSION}</wildfly-core-version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.wildfly</groupId>
+      <artifactId>wildfly-feature-pack</artifactId>
+      <version>\${wildfly-version}</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.wildfly.core</groupId>
+      <artifactId>wildfly-core-feature-pack</artifactId>
+      <version>\${wildfly-core-version}</version>
+      <type>pom</type>
+    </dependency>
+  </dependencies>
+
+</project>
+EOF
+mvn -f workspace/wf/wf-all-pom.xml dependency:sources > /dev/null ## to get all deps and have nicer dependencies.txt
+mvn -f workspace/wf/wf-all-pom.xml dependency:sources > workspace/wf/dependencies.txt
+
+rm -rf workspace/wf/wf-all-in-one && mkdir workspace/wf/wf-all-in-one
+rm -rf \$\{project.basedir\}/  ##  The dependency plugin uses the existence of some marker files to detect if a given artifact has been unpacked. By default these markers are stored in /target/dependency.
+
+cat <<EOF > workspace/wf/wf-all-in-one/pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+
+        <name>WildFly - All In One</name>
+        <groupId>org.experiments.rsvoboda</groupId>
+        <artifactId>wf-all-deps</artifactId>
+        <version>1.0.0</version>
+        <packaging>pom</packaging>
+
+        <modules>
+EOF
+
+for GAV in `grep ".*:.*:.*:.*:.*:.*" workspace/wf/dependencies.txt| sed "s/\[INFO\]    //g" | grep ':jar:' | cut -d: -f1-2,5`; do
+  MODULE=`echo $GAV | tr ":" "-"`
+  mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:unpack -Dartifact=$GAV:jar:sources -DoutputDirectory=workspace/wf/wf-all-in-one/$MODULE/src/main/java
+
+  if [ $? -gt 0 ]
+  then
+    mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:copy -Dartifact=$GAV:jar -DoutputDirectory=workspace/wf/tmp
+    java -jar workspace/cfr_0_121.jar workspace/wf/tmp/`echo $GAV | cut -d: -f2- | tr ":" "-"`.jar --outputdir workspace/wf/wf-all-in-one/$MODULE/src/main/java
+  fi
+
+  cat <<EOF >> workspace/wf/wf-all-in-one/pom.xml
+                <module>$MODULE</module>
+EOF
+
+  cat <<EOF > workspace/wf/wf-all-in-one/$MODULE/pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+
+        <parent>
+                <groupId>org.experiments.rsvoboda</groupId>
+                <artifactId>wf-all-deps</artifactId>
+                <version>1.0.0</version>
+        </parent>
+
+        <artifactId>$MODULE</artifactId>
+</project>
+EOF
+
+done
+
+cat <<EOF >> workspace/wf/wf-all-in-one/pom.xml
+        </modules>
+</project>
+EOF
+
+## find workspace/wf/wf-all-in-one/ | grep java$
+
+mvn -f workspace/wf/wf-all-in-one/pom.xml  org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/  -Dsonar.exclusions=**/org/apache/lucene/analysis/standard/UAX29URLEmailTokenizerImpl.java,**/org/jgroups/protocols/Locking.java
+
+firefox http://localhost:9000/
+
+```
 
 ## Step 5) SonarQube and PostgreSQL in Docker
 Steps for quick production-like setup in different environments, based on official sonarqube image https://hub.docker.com/_/sonarqube/

@@ -15,8 +15,8 @@ Running SonarQube on Multiple Project (Not Multiple Module)
       * [Step 3d) jbossws-cxf-client   dependencies using SonarLint](#step-3d-jbossws-cxf-client--dependencies-using-sonarlint)
   * [Step 4) WildFly and all dependencies in one big project](#step-4-wildfly-and-all-dependencies-in-one-big-project)
   * [Step 5) SonarQube and PostgreSQL in Docker](#step-5-sonarqube-and-postgresql-in-docker)
-  * [Step 6) JaCoCo test coverage details for project](#step-6-jacoco-test-coverage-details-for-project)
-  * [Step 7) Several JaCoCo test coverage files   one big project](#step-7-several-jacoco-test-coverage-files--one-big-project)
+  * [Step 6) JaCoCo code coverage details for project](#step-6-jacoco-code-coverage-details-for-project)
+  * [Step 7) Several JaCoCo code coverage files   one big project](#step-7-several-jacoco-code-coverage-files--one-big-project)
   * [Step 8) SonarQube   get maven dependencies   decompile jars](#step-8-sonarqube--get-maven-dependencies--decompile-jars)
   * [Step 9) SonarQube analysis of tests, detection of dedicated tests modules](#step-9-sonarqube-analysis-of-tests-detection-of-dedicated-tests-modules)
 
@@ -34,8 +34,8 @@ Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
    - using SonarLint
 4) run SonarQube analysis (one big SonarQube project) on all the dependencies of WildFly
 5) SonarQube and PostgreSQL in Docker for quick production-like setup in different environments
-6) SonarQube + JaCoCo test coverage details for one project
-7) SonarQube + several JaCoCo test coverage files + one big SonarQube project
+6) SonarQube + JaCoCo code coverage details for one project
+7) SonarQube + several JaCoCo code coverage files + one big SonarQube project
 8) SonarQube + get maven dependencies + decompile jars (some artifacts do not have sources available - e.g. asm)
 9) SonarQube analysis of tests, detection of dedicated tests modules
 
@@ -412,8 +412,8 @@ docker volume rm $(docker volume ls -q)
 # Inspect volume
 docker volume inspect downloads_sonarqube_conf
 ```
-## Step 6) JaCoCo test coverage details for project
-To get JaCoCo test coverage details into SonarQube you need compiled classes and specified `sonar.jacoco.reportPaths` property, no need to have test results etc.
+## Step 6) JaCoCo code coverage details for project
+To get JaCoCo code coverage details into SonarQube you need compiled classes and specified `sonar.jacoco.reportPaths` property, no need to have test results etc.
 ```bash
 git clone --branch jbossws-cxf-5.1.8.Final https://github.com/jbossws/jbossws-cxf.git workspace/jbossws-cxf
 
@@ -423,8 +423,7 @@ mvn -f workspace/jbossws-cxf/pom.xml -Pwildfly1010 -Dsonar.jacoco.reportPaths=/h
 firefox http://localhost:9000/
 ```
 
-
-## Step 7) Several JaCoCo test coverage files + one big project
+## Step 7) Several JaCoCo code coverage files + one big project
 
 ### Merge several JaCoCo .exec files
 **Steps using Maven 3**

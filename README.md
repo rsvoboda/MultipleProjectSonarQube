@@ -413,6 +413,16 @@ docker volume rm $(docker volume ls -q)
 docker volume inspect downloads_sonarqube_conf
 ```
 ## Step 6) JaCoCo test coverage details for project
+To get JaCoCo test coverage details into SonarQube you need compiled classes and specified `sonar.jacoco.reportPaths` property, no need to have test results etc.
+```bash
+git clone --branch jbossws-cxf-5.1.8.Final https://github.com/jbossws/jbossws-cxf.git workspace/jbossws-cxf
+
+mvn -f workspace/jbossws-cxf/pom.xml -Pwildfly1010 package -DskipTests -Denforcer.skip=true -Dcheckstyle.skip=true
+mvn -f workspace/jbossws-cxf/pom.xml -Pwildfly1010 -Dsonar.jacoco.reportPaths=/home/rsvoboda/Downloads/jacoco.exec org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
+
+firefox http://localhost:9000/
+```
+
 
 ## Step 7) Several JaCoCo test coverage files + one big project
 

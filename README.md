@@ -417,7 +417,7 @@ docker volume inspect downloads_sonarqube_conf
 ## Step 7) Several JaCoCo test coverage files + one big project
 
 ### Merge several JaCoCo .exec files
-Steps using Maven 3
+**Steps using Maven 3**
 ```bash
 cd directory/with/jacoco/exec/files
 cat <<EOF > pom.xml
@@ -455,6 +455,28 @@ EOF
 mvn jacoco:merge
 ```
 Note: Be aware of backslash before $ to avoid shell expansion if you want to do copy&paste.
+
+**Steps using Ant**
+```bash
+cd directory/with/jacoco/exec/files
+wget -O jacoco.zip http://search.maven.org/remotecontent?filepath=org/jacoco/jacoco/0.7.9/jacoco-0.7.9.zip
+unzip -q -d jacoco jacoco.zip
+
+cat <<EOF > build.xml
+ <project name="JaCoCo merge project" xmlns:jacoco="antlib:org.jacoco.ant">
+     <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+        <classpath path="jacoco/lib/jacocoant.jar"/>
+    </taskdef>
+    <target name="merge">
+        <jacoco:merge destfile="jacoco-merged.exec">
+            <fileset dir="." includes="*.exec"/>
+        </jacoco:merge>
+    </target>
+</project>
+EOF
+
+ant merge
+```
 
 ## Step 8) SonarQube + get maven dependencies + decompile jars 
 Some artifacts do not have sources available - e.g. asm and thus some workaround needs to be applied.

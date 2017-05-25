@@ -544,3 +544,36 @@ Instead of `mvn dependency:copy -Dartifact=$GAV` one can use `mvn dependency:cop
 dependencies of the project into the target directory.
 
 ## Step 9) SonarQube analysis of tests
+### Tests results inside current project
+```bash
+git clone --branch jbossws-cxf-5.1.8.Final https://github.com/jbossws/jbossws-cxf.git workspace/jbossws-cxf
+
+mvn -f workspace/jbossws-cxf/pom.xml test
+mvn -f workspace/jbossws-cxf/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
+  ## ==> ~20 unit tests details uploaded
+
+mvn -f workspace/jbossws-cxf/pom.xml -Pwildfly1010 integration-test -Dmaven.test.failure.ignore=true
+
+## tests available results in project
+mvn -f workspace/jbossws-cxf/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
+  ## ==> ~740 tests details uploaded
+
+## Customize project name and modules names
+find . | grep pom.xml | xargs sed -i "s/JBoss Web Services/EAP : JBoss Web Services/"
+mvn -Pwildfly1010 org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/
+```
+
+### External tests results
+When you don't want to spend time re-executing tests you can specify location with the results.
+Structure of that directory must be flat, sub-directories are ignored.
+
+```bash
+cp -r workspace/jbossws-cxf workspace/jbossws-cxf-flat
+cd workspace/jbossws-cxf-flat
+mkdir test-results
+for i in `find . | grep "surefire-reports$"`; do echo $i; mv $i/* test-results/; done
+mvn -Pwildfly1010 clean
+mvn -Pwildfly1010 org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/ -Dsonar.junit.reportsPath=/home/rsvoboda/Downloads/workspace/jbossws-cxf-flat/test-results/
+  ## ==> ~740 tests details uploaded
+cd -
+```

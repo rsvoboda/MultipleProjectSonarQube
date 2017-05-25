@@ -18,7 +18,7 @@ Running SonarQube on Multiple Project (Not Multiple Module)
   * [Step 6) JaCoCo code coverage details for project](#step-6-jacoco-code-coverage-details-for-project)
   * [Step 7) Several JaCoCo code coverage files   one big project](#step-7-several-jacoco-code-coverage-files--one-big-project)
   * [Step 8) SonarQube   get maven dependencies   decompile jars](#step-8-sonarqube--get-maven-dependencies--decompile-jars)
-  * [Step 9) SonarQube analysis of tests, detection of dedicated tests modules](#step-9-sonarqube-analysis-of-tests-detection-of-dedicated-tests-modules)
+  * [Step 9) SonarQube analysis of tests](#step-9-sonarqube-analysis-of-tests)
 
 Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
 
@@ -37,7 +37,7 @@ Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
 6) SonarQube + JaCoCo code coverage details for one project
 7) SonarQube + several JaCoCo code coverage files + one big SonarQube project
 8) SonarQube + get maven dependencies + decompile jars (some artifacts do not have sources available - e.g. asm)
-9) SonarQube analysis of tests, detection of dedicated tests modules
+9) SonarQube analysis of tests
 
 ## Step 1 Analysis on WildFly sources
 ```bash
@@ -487,6 +487,33 @@ EOF
 ant merge
 ```
 
+### Several JaCoCo code coverage files and jbossws-cxf
+This step expects existing code coverage files, their creation is out of scope of this text.
+For jbossws-cxf I have 3 different JaCoCo file, one for unit tests, one for client side from integration testsuite
+and one for server side from integration testsuite (jacoco-server.exec, jacoco-ts.exec, jacoco-unit.exec).
+These files are merged into one `jacoco-merged.exec` using steps mentioned above.
+
+```bash
+git clone --branch jbossws-cxf-5.1.8.Final https://github.com/jbossws/jbossws-cxf.git workspace/jbossws-cxf
+
+## execute tests so we test details with coverage data
+mvn -f workspace/jbossws-cxf/pom.xml -Pwildfly1010 integration-test -Dmaven.test.failure.ignore=true -DfailIfNoTests=false
+
+## push aggregated code coverage
+mvn -f workspace/jbossws-cxf/pom.xml -Pwildfly1010 -Dsonar.jacoco.reportPaths=/home/rsvoboda/Downloads/jacoco-merged.exec org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
+
+firefox http://localhost:9000/
+```
+
+### Pushing JaCoCo code coverage details to older or LTS SonarQube server
+You may be running older or LTS version of SonarQube server and thus `sonar.jacoco.reportPaths` property won't work.
+You must specify older properties `sonar.jacoco.reportPath` and `sonar.jacoco.itReportPath`.
+
+```bash
+mvn -Pwildfly1010 org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://sonar_server_address/ -Dsonar.jacoco.reportPath=/home/rsvoboda/Downloads/jacoco-unit.exec -Dsonar.jacoco.itReportPath=/home/rsvoboda/Downloads/jacoco.exec.merged
+
+```
+
 ## Step 8) SonarQube + get maven dependencies + decompile jars 
 Some artifacts do not have sources available - e.g. asm and thus some workaround needs to be applied.
 Maven can easily fetch jar file with compiled classes, thus decompilation seems like the right way.
@@ -516,4 +543,4 @@ fi
 Instead of `mvn dependency:copy -Dartifact=$GAV` one can use `mvn dependency:copy-dependencies` to fetch all
 dependencies of the project into the target directory.
 
-## Step 9) SonarQube analysis of tests, detection of dedicated tests modules
+## Step 9) SonarQube analysis of tests

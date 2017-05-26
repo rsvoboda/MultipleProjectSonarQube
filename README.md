@@ -20,7 +20,6 @@ Running SonarQube on Multiple Project (Not Multiple Module)
       * [Merge several JaCoCo .exec files](#merge-several-jacoco-exec-files)
       * [Several JaCoCo code coverage files and jbossws-cxf](#several-jacoco-code-coverage-files-and-jbossws-cxf)
       * [Pushing JaCoCo code coverage details to older or LTS SonarQube server](#pushing-jacoco-code-coverage-details-to-older-or-lts-sonarqube-server)
-
   * [Step 8) SonarQube   get maven dependencies   decompile jars](#step-8-sonarqube--get-maven-dependencies--decompile-jars)
   * [Step 9) SonarQube analysis of tests](#step-9-sonarqube-analysis-of-tests)
       * [Tests results inside current project](#tests-results-inside-current-project)

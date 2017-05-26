@@ -17,8 +17,15 @@ Running SonarQube on Multiple Project (Not Multiple Module)
   * [Step 5) SonarQube and PostgreSQL in Docker](#step-5-sonarqube-and-postgresql-in-docker)
   * [Step 6) JaCoCo code coverage details for project](#step-6-jacoco-code-coverage-details-for-project)
   * [Step 7) Several JaCoCo code coverage files   one big project](#step-7-several-jacoco-code-coverage-files--one-big-project)
+      * [Merge several JaCoCo .exec files](#merge-several-jacoco-exec-files)
+      * [Several JaCoCo code coverage files and jbossws-cxf](#several-jacoco-code-coverage-files-and-jbossws-cxf)
+      * [Pushing JaCoCo code coverage details to older or LTS SonarQube server](#pushing-jacoco-code-coverage-details-to-older-or-lts-sonarqube-server)
+
   * [Step 8) SonarQube   get maven dependencies   decompile jars](#step-8-sonarqube--get-maven-dependencies--decompile-jars)
   * [Step 9) SonarQube analysis of tests](#step-9-sonarqube-analysis-of-tests)
+      * [Tests results inside current project](#tests-results-inside-current-project)
+      * [External tests results](#external-tests-results)
+      * [Analyze only tests](#analyze-only-tests)
 
 Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
 

@@ -577,3 +577,26 @@ mvn -Pwildfly1010 org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Ds
   ## ==> ~740 tests details uploaded
 cd -
 ```
+
+### Analyze only tests
+Original plan was to introduce custom profile which will redefine `sonar.projectName` to something like `${project.name}-tests`
+and `sonar.projectKey` to something like `${project.groupId}:${project.artifactId}-tests`. When using Maven, `sonar.projectKey`is
+automatically set to `<groupId>:<artifactId>`, details in https://docs.sonarqube.org/display/SONAR/Analysis+Parameters
+So the new profile just redefines `sonar.sources` and `sonar.tests`, the rest is done via sed.
+
+```bash
+git clone --branch jbossws-cxf-5.1.8.Final https://github.com/jbossws/jbossws-cxf.git workspace/jbossws-cxf-test
+cd  workspace/jbossws-cxf-test
+
+TEST_PROFILE="<profile><id>analyze-test-classes</id><properties><sonar.sources>src/test/java</sonar.sources><sonar.tests></sonar.tests></properties></profile>"
+sed -i "s,</profiles>,$TEST_PROFILE</profiles>,g" pom.xml
+
+## change groupId to avoid errors like Module "org.jboss.ws.cxf:jbossws-cxf-jaspi" is already part of project "org.jboss.ws.cxf:jbossws-cxf"
+find . | grep pom.xml | xargs sed -i "s,<groupId>org.jboss.ws.cxf<\/groupId>,<groupId>org.jboss.ws.cxf.test.analysis<\/groupId>,g"
+find . | grep pom.xml | xargs sed -i "s/<name>JBoss Web Services\(.*\)<\/name>/<name>EAP : JBoss Web Services\1 - Tests<\/name>/g"
+
+## ensure src/test/java exists
+for i in `find modules | grep pom.xml`; do TESTS_PATH="`dirname $i`/src/test/java"; [[ -d $TESTS_PATH ]] || mkdir -p $TESTS_PATH; done
+
+mvn -Panalyze-test-classes,wildfly1010 org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
+```

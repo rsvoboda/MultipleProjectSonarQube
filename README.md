@@ -606,3 +606,14 @@ for i in `find modules | grep pom.xml`; do TESTS_PATH="`dirname $i`/src/test/jav
 
 mvn -Panalyze-test-classes,wildfly1010 org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
 ```
+
+### Analyze only tests on older or LTS SonarQube server
+When you use steps from previous section against older or 5.6.x LTS SonarQube server you will get failure running the sonar command.
+Full message is `Findbugs needs sources to be compiled. Please build project before executing sonar or check the location of compiled classes to make it possible for Findbugs to analyse your project.`.
+To workaround this limitation of older SonarQube server you need to build the test classes and give hint to analyzer where to look for them.
+
+Replace last command from previous section with following commands:
+```
+mvn -Pwildfly1010 integration-test -Dmaven.test.failure.ignore=true -Dtest=NONE -DfailIfNoTests=false
+mvn -Panalyze-test-classes,wildfly1010 org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.java.binaries=target/test-classes
+```

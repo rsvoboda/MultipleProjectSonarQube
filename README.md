@@ -25,6 +25,7 @@ Running SonarQube on Multiple Project (Not Multiple Module)
       * [Tests results inside current project](#tests-results-inside-current-project)
       * [External tests results](#external-tests-results)
       * [Analyze only tests](#analyze-only-tests)
+  * [Step 10) jbossws-cxf-client all-in-one project with code coverage and test results](#step-10-jbossws-cxf-client-all-in-one-project-with-code-coverage-and-test-results)
 
 Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
 
@@ -616,4 +617,142 @@ Replace last command from previous section with following commands:
 ```
 mvn -Pwildfly1010 integration-test -Dmaven.test.failure.ignore=true -Dtest=NONE -DfailIfNoTests=false
 mvn -Panalyze-test-classes,wildfly1010 org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.java.binaries=target/test-classes
+```
+
+## Step 10) jbossws-cxf-client all-in-one project with code coverage and test results
+This step expects existing code coverage file and tests results from previous tests execution.
+Following code creates all-in-one project with sources pushed into `$MODULE/src/main/java`, it also unpacks .class files into `$MODULE/target/classes/` so code coverage can be processed by SonarQube. To upload test results into SonarQube it is needed to generate minimal mocks of tests into `$MODULE/src/test/java/`. Tests are not uploaded into maven repositories so it's not easy to fetch the real tests.
+
+```bash
+## configuration phase
+
+PROJECT="jbossws-cxf-client"
+ALL_IN_PROJECT="$PROJECT-all-in-one"
+ALL_IN_PROJECT_VERSION="1.0.0.Final"
+PROJECT_NAME="JBoss Web Services CXF Client dependencies"
+MODULE_PREFIX="ws-client-"
+
+TEST_RESULTS="/home/rsvoboda/Downloads/workspace/jbossws-cxf-flat/test-results"
+JACOCO_EXEC="/home/rsvoboda/Downloads/jacoco.exec.merged"
+
+WS="workspace"
+WS_INFRA="workspace/tmp"
+
+## prepare phase
+
+[[ -d ${WS} ]] || mkdir -p ${WS}
+[[ -d ${WS_INFRA} ]] || mkdir -p ${WS_INFRA}
+[[ -f ${WS}/cfr.jar ]] || wget -O ${WS}/cfr.jar http://www.benf.org/other/cfr/cfr_0_121.jar
+
+cat <<EOF > ${WS_INFRA}/${PROJECT}-pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>${PROJECT_NAME}</name>
+  <groupId>org.jboss.ws.cxf</groupId>
+  <artifactId>${PROJECT}-test</artifactId>
+  <version>1.0.0.Final</version>
+
+  <properties>
+      <jbossws-cxf-client-version>5.1.8.Final</jbossws-cxf-client-version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jboss.ws.cxf</groupId>
+      <artifactId>jbossws-cxf-client</artifactId>
+      <version>\${jbossws-cxf-client-version}</version>
+    </dependency>
+  </dependencies>
+
+</project>
+EOF
+
+## execution phase
+
+mvn -f ${WS_INFRA}/${PROJECT}-pom.xml dependency:sources > /dev/null ## to have nicer dependencies file
+mvn -f ${WS_INFRA}/${PROJECT}-pom.xml dependency:sources > ${WS_INFRA}/${PROJECT}-dependencies.txt
+
+
+rm -rf ${WS}/${ALL_IN_PROJECT} && mkdir ${WS}/${ALL_IN_PROJECT}
+rm -rf \$\{project.basedir\}/target/dependency-maven-plugin-markers/
+
+cat <<EOF > ${WS}/${ALL_IN_PROJECT}/pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+
+        <name>${PROJECT_NAME} - All-In-One</name>
+        <groupId>org.experiments.rsvoboda</groupId>
+        <artifactId>${ALL_IN_PROJECT}</artifactId>
+        <version>${ALL_IN_PROJECT_VERSION}</version>
+        <packaging>pom</packaging>
+
+        <modules>
+EOF
+
+for GAV in `grep ".*:.*:.*:.*:.*:.*" ${WS_INFRA}/${PROJECT}-dependencies.txt| sed "s/\[INFO\]    //g" | grep -v system | cut -d: -f1-2,5`; do
+  MODULE=`echo "${MODULE_PREFIX}$GAV" | tr ":" "-"`
+  mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:unpack -Dartifact=$GAV:jar:sources -DoutputDirectory=${WS}/${ALL_IN_PROJECT}/$MODULE/src/main/java
+  if [ $? -gt 0 ]
+  then
+    mvn dependency:copy -Dartifact=$GAV:jar -DoutputDirectory=${WS_INFRA}
+    java -jar ${WS}/cfr.jar ${WS_INFRA}/`echo $GAV | cut -d: -f2- | tr ":" "-"`.jar \
+       --outputdir ${WS}/${ALL_IN_PROJECT}/$MODULE/src/main/java
+  fi
+  mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:unpack -Dartifact=$GAV:jar -DoutputDirectory=${WS}/${ALL_IN_PROJECT}/$MODULE/target/classes/
+  cat <<EOF >> ${WS}/${ALL_IN_PROJECT}/pom.xml
+                <module>$MODULE</module>
+EOF
+
+  cat <<EOF > ${WS}/${ALL_IN_PROJECT}/$MODULE/pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <parent>
+                <groupId>org.experiments.rsvoboda</groupId>
+                <artifactId>${ALL_IN_PROJECT}</artifactId>
+                <version>${ALL_IN_PROJECT_VERSION}</version>
+        </parent>
+        <artifactId>$MODULE</artifactId>
+</project>
+EOF
+done
+
+## Generate test mocks
+MODULE="${MODULE_PREFIX}testsuite"
+mkdir -p ${WS}/${ALL_IN_PROJECT}/$MODULE/src/test/java/
+
+for i in `ls ${TEST_RESULTS} | grep "TEST-"`; do
+  TEST_PATH=`basename $i | tr "." "/" | sed "s/\/xml/\.java/g" | sed "s,TEST-,${WS}/${ALL_IN_PROJECT}/$MODULE/src/test/java/,g"`
+  FQCN=`basename $i | sed "s/.xml//g" | sed "s,TEST-,,g"`
+  TEST_NAME=`echo "$FQCN" | rev | cut -d. -f1 | rev`
+  PACKAGE_NAME=`echo "$FQCN" | rev | cut -d. -f2- | rev`
+
+  mkdir -p `dirname $TEST_PATH`
+  echo "package $PACKAGE_NAME;"           > $TEST_PATH
+  echo "public final class $TEST_NAME {}" >> $TEST_PATH
+
+done
+cat <<EOF > ${WS}/${ALL_IN_PROJECT}/$MODULE/pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <parent>
+                <groupId>org.experiments.rsvoboda</groupId>
+                <artifactId>${ALL_IN_PROJECT}</artifactId>
+                <version>${ALL_IN_PROJECT_VERSION}</version>
+        </parent>
+        <artifactId>$MODULE</artifactId>
+</project>
+EOF
+
+cat <<EOF >> ${WS}/${ALL_IN_PROJECT}/pom.xml
+                <module>$MODULE</module>
+        </modules>
+</project>
+EOF
+
+mvn -f ${WS}/${ALL_IN_PROJECT}/pom.xml  org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/ -Dsonar.exclusions=**/com/google/common/util/concurrent/Monitor.java,**/org/apache/tools/ant/launch/*.java  -Dsonar.jacoco.reportPaths=${JACOCO_EXEC} -Dsonar.junit.reportsPath=${TEST_RESULTS}
 ```

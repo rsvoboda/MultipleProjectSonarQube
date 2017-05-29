@@ -54,7 +54,7 @@ cat <<EOF > ${WS}/${ALL_IN_PROJECT}/pom.xml
         <modules>
 EOF
 
-for GAV in `grep ".*:.*:.*:.*:.*:.*" ${WS_INFRA}/${PROJECT}-dependencies.txt| sed "s/\[INFO\]    //g" | grep -v system | cut -d: -f1-2,5`; do
+for GAV in `grep ".*:.*:.*:.*:.*:.*" ${WS_INFRA}/${PROJECT}-dependencies.txt| sed "s/\[INFO\]    //g" | grep ':jar:' | cut -d: -f1-2,5`; do
   MODULE=`echo "${MODULE_PREFIX}$GAV" | tr ":" "-"`
   mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:unpack -Dartifact=$GAV:jar:sources -DoutputDirectory=${WS}/${ALL_IN_PROJECT}/$MODULE/src/main/java
   if [ $? -gt 0 ]

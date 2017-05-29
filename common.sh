@@ -115,5 +115,7 @@ cat <<EOF >> ${WS}/${ALL_IN_PROJECT}/pom.xml
         </modules>
 </project>
 EOF
+
+rm -rf \$\{project.basedir\}/target/dependency-maven-plugin-markers/
 }
 

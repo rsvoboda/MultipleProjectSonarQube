@@ -472,6 +472,8 @@ mvn jacoco:merge
 ```
 Note: Be aware of backslash before $ to avoid shell expansion if you want to do copy&paste.
 
+If you are trying to merge older .exec files with new ones you may see `[ERROR] Failed to execute goal org.jacoco:jacoco-maven-plugin:0.7.9:merge (default-cli) on project JaCoCoMerge: Unable to read /path/to/jacoco.exec.file: Cannot read execution data version 0x1006. This version of JaCoCo uses execution data version 0x1007. -> [Help 1]`. To see relationship between exec file versions and JaCoCo releases please visit https://github.com/jacoco/jacoco/wiki/ExecFileVersions
+
 **Steps using Ant**
 ```bash
 cd directory/with/jacoco/exec/files

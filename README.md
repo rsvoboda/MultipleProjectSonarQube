@@ -756,3 +756,70 @@ EOF
 
 mvn -f ${WS}/${ALL_IN_PROJECT}/pom.xml  org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/ -Dsonar.exclusions=**/com/google/common/util/concurrent/Monitor.java,**/org/apache/tools/ant/launch/*.java  -Dsonar.jacoco.reportPaths=${JACOCO_EXEC} -Dsonar.junit.reportsPath=${TEST_RESULTS}
 ```
+
+## Step 11) jbossws-cxf server side all-in-one with code coverage and test results
+```bash
+## configuration phase
+
+PROJECT="jbossws-cxf-server"
+ALL_IN_PROJECT="$PROJECT-all-in-one"
+ALL_IN_PROJECT_VERSION="1.0.0.Final"
+PROJECT_NAME="JBoss Web Services CXF Server dependencies"
+MODULE_PREFIX="ws-server-"
+
+TEST_RESULTS="/home/rsvoboda/Downloads/workspace/jbossws-cxf-flat/test-results"
+JACOCO_EXEC="/home/rsvoboda/Downloads/jacoco.exec.merged"
+
+WS="/home/rsvoboda/Downloads/workspace"
+WS_INFRA="/home/rsvoboda/Downloads/workspace/tmp"
+
+## prepare phase
+
+[[ -d ${WS} ]] || mkdir -p ${WS}
+[[ -d ${WS_INFRA} ]] || mkdir -p ${WS_INFRA}
+[[ -f ${WS}/cfr.jar ]] || wget -O ${WS}/cfr.jar http://www.benf.org/other/cfr/cfr_0_121.jar
+
+cat <<EOF > ${WS_INFRA}/${PROJECT}-pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>${PROJECT_NAME}</name>
+  <groupId>org.jboss.ws.cxf</groupId>
+  <artifactId>${PROJECT}-test</artifactId>
+  <version>1.0.0.Final</version>
+
+  <properties>
+      <jbossws-cxf-version>5.1.8.Final</jbossws-cxf-version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jboss.ws.cxf</groupId>
+      <artifactId>jbossws-cxf-server</artifactId>
+      <version>\${jbossws-cxf-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.wildfly</groupId>
+      <artifactId>wildfly-webservices-server-integration</artifactId>
+      <version>11.0.0.Alpha1</version>
+      <exclusions>
+         <exclusion>
+            <groupId>*</groupId>
+            <artifactId>*</artifactId>
+         </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+
+</project>
+EOF
+
+## execution phase
+. common.sh
+show_settings
+generate_all_in_one
+
+mvn -f ${WS}/${ALL_IN_PROJECT}/pom.xml  org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/ -Dsonar.exclusions=**/com/google/common/util/concurrent/Monitor.java,**/org/apache/tools/ant/launch/*.java  -Dsonar.jacoco.reportPaths=${JACOCO_EXEC} -Dsonar.junit.reportsPath=${TEST_RESULTS}
+
+```

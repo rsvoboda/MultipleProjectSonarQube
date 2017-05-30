@@ -26,6 +26,8 @@ Running SonarQube on Multiple Project (Not Multiple Module)
       * [External tests results](#external-tests-results)
       * [Analyze only tests](#analyze-only-tests)
   * [Step 10) jbossws-cxf-client all-in-one project with code coverage and test results](#step-10-jbossws-cxf-client-all-in-one-project-with-code-coverage-and-test-results)
+  * [Step 11) jbossws-cxf server side all-in-one with code coverage and test results](#step-11-jbossws-cxf-server-side-all-in-one-with-code-coverage-and-test-results)
+  * [Step 12) WildFly all-in-one with code coverage and test results](#step-12-wildfly-all-in-one-with-code-coverage-and-test-results)
 
 Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
 

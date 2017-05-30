@@ -53,18 +53,21 @@ cat <<EOF > ${WS}/${ALL_IN_PROJECT}/pom.xml
 
         <modules>
 EOF
+cp ${WS}/${ALL_IN_PROJECT}/pom.xml ${WS}/${ALL_IN_PROJECT}/pom-decompiled.xml
 
 for GAV in `grep ".*:.*:.*:.*:.*:.*" ${WS_INFRA}/${PROJECT}-dependencies.txt| sed "s/\[INFO\]    //g" | grep ':jar:' | cut -d: -f1-2,5`; do
   MODULE=`echo "${MODULE_PREFIX}$GAV" | tr ":" "-"`
+  POM_NAME_SUFFIX=""
   mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:unpack -Dartifact=$GAV:jar:sources -DoutputDirectory=${WS}/${ALL_IN_PROJECT}/$MODULE/src/main/java
   if [ $? -gt 0 ]
   then
     mvn dependency:copy -Dartifact=$GAV:jar -DoutputDirectory=${WS_INFRA}
     java -jar ${WS}/cfr.jar ${WS_INFRA}/`echo $GAV | cut -d: -f2- | tr ":" "-"`.jar \
        --outputdir ${WS}/${ALL_IN_PROJECT}/$MODULE/src/main/java
+    POM_NAME_SUFFIX="-decompiled"
   fi
   mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:unpack -Dartifact=$GAV:jar -DoutputDirectory=${WS}/${ALL_IN_PROJECT}/$MODULE/target/classes/
-  cat <<EOF >> ${WS}/${ALL_IN_PROJECT}/pom.xml
+  cat <<EOF >> ${WS}/${ALL_IN_PROJECT}/pom${POM_NAME_SUFFIX}.xml
                 <module>$MODULE</module>
 EOF
 
@@ -115,7 +118,10 @@ cat <<EOF >> ${WS}/${ALL_IN_PROJECT}/pom.xml
         </modules>
 </project>
 EOF
-
+cat <<EOF >> ${WS}/${ALL_IN_PROJECT}/pom-decompiled.xml
+        </modules>
+</project>
+EOF
 rm -rf \$\{project.basedir\}/target/dependency-maven-plugin-markers/
 }
 

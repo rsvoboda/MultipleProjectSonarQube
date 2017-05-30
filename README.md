@@ -825,3 +825,93 @@ generate_all_in_one
 mvn -f ${WS}/${ALL_IN_PROJECT}/pom.xml  org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/ -Dsonar.exclusions=**/com/google/common/util/concurrent/Monitor.java,**/org/apache/tools/ant/launch/*.java  -Dsonar.jacoco.reportPaths=${JACOCO_EXEC} -Dsonar.junit.reportsPath=${TEST_RESULTS}
 
 ```
+## Step 12) WildFly all-in-one with code coverage and test results
+```bash
+## prepare SonarQube and latest WildFly bits
+
+wget -O workspace/sonarqube-6.3.1.zip https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-6.3.1.zip
+unzip -q -d workspace/ workspace/sonarqube-6.3.1.zip
+
+echo "" >> workspace/sonarqube-6.3.1/conf/sonar.properties
+echo "sonar.web.javaOpts=-Xmx3072m -Xms1024m -XX:+HeapDumpOnOutOfMemoryError" >> workspace/sonarqube-6.3.1/conf/sonar.properties
+echo "sonar.ce.javaOpts=-Xmx2048m -Xms512m -XX:+HeapDumpOnOutOfMemoryError" >> workspace/sonarqube-6.3.1/conf/sonar.properties
+
+workspace/sonarqube-6.3.1/bin/linux-x86-64/sonar.sh start
+sleep 10
+
+git clone https://github.com/wildfly/wildfly.git workspace/wf/wildfly
+mvn -f workspace/wf/wildfly/pom.xml -fn clean install -Dmaven.test.failure.ignore=true -Dtest=NONE -DfailIfNoTests=false
+
+mvn -f workspace/wf/wildfly/pom.xml help:evaluate -Dexpression=project.version > /dev/null # to avoid noise in next command
+WF_VERSION=`mvn -f workspace/wf/wildfly/pom.xml help:evaluate -Dexpression=project.version | grep -v "^\["`
+WF_CORE_VERSION=`mvn -f workspace/wf/wildfly/pom.xml help:evaluate -Dexpression=version.org.wildfly.core | grep -v "^\["`
+echo "${WF_VERSION} - ${WF_CORE_VERSION}"
+```
+
+```bash
+## configuration phase
+
+PROJECT="wildfly-server"
+ALL_IN_PROJECT="$PROJECT-all-in-one"
+ALL_IN_PROJECT_VERSION="1.0.0.Final"
+PROJECT_NAME="WildFly Server dependencies"
+MODULE_PREFIX="wf-server-"
+
+TEST_RESULTS="/home/rsvoboda/Downloads/as-ts-plus-ws-ts-flat"
+JACOCO_EXEC="/home/rsvoboda/Downloads/jacoco-coverage-files/jacoco-merged.exec"
+
+WS="/home/rsvoboda/Downloads/workspace"
+WS_INFRA="/home/rsvoboda/Downloads/workspace/tmp"
+
+## prepare phase
+
+[[ -d ${WS} ]] || mkdir -p ${WS}
+[[ -d ${WS_INFRA} ]] || mkdir -p ${WS_INFRA}
+[[ -f ${WS}/cfr.jar ]] || wget -O ${WS}/cfr.jar http://www.benf.org/other/cfr/cfr_0_121.jar
+
+cat <<EOF > ${WS_INFRA}/${PROJECT}-pom.xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.wildfly</groupId>
+  <artifactId>wildfly-all-deps</artifactId>
+  <version>1.0.0.Final</version>
+  <properties>
+      <wildfly-version>${WF_VERSION}</wildfly-version>
+      <wildfly-core-version>${WF_CORE_VERSION}</wildfly-core-version>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.wildfly</groupId>
+      <artifactId>wildfly-feature-pack</artifactId>
+      <version>\${wildfly-version}</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.wildfly</groupId>
+      <artifactId>wildfly-servlet-feature-pack</artifactId>
+      <version>\${wildfly-version}</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.wildfly.core</groupId>
+      <artifactId>wildfly-core-feature-pack</artifactId>
+      <version>\${wildfly-core-version}</version>
+      <type>pom</type>
+    </dependency>
+  </dependencies>
+</project>
+EOF
+
+## execution phase
+. common.sh
+show_settings
+generate_all_in_one
+
+mvn -f ${WS_INFRA}/${PROJECT}-pom.xml dependency:tree
+
+mvn -f ${WS}/${ALL_IN_PROJECT}/pom.xml  org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/ -Dsonar.exclusions=**/com/google/common/util/concurrent/Monitor.java,**/org/apache/tools/ant/launch/*.java,**/org/jgroups/protocols/Locking.java  -Dsonar.jacoco.reportPaths=${JACOCO_EXEC} -Dsonar.junit.reportsPath=${TEST_RESULTS}
+
+
+```

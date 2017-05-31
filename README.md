@@ -931,3 +931,21 @@ git clone git@github.com:allure-examples/allure-testng-example.git workspace/all
 mvn -f workspace/allure-testng-example/pom.xml clean test org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
 ## there are test failures but we can ignore them as they are not relevant for this example
 ```
+
+## Step 14) Project Configuration Parameters
+Some projects do not contain some information (homepage, scm etc.) or the information is incorrect.
+SonarQube allows to redefine key parameters via command line.
+Project configuration parameters are tracked on https://docs.sonarqube.org/display/SONAR/Analysis+Parameters
+
+```bash
+mvn archetype:generate -DgroupId=com.mycompany.app -DartifactId=my-app -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+
+cd my-app/
+mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar \
+  -Dsonar.links.scm=https://github.com/com.mycompany/my-app \
+  -Dsonar.links.homepage=https://www.mycompany.com/my-app \
+  -Dsonar.projectDescription="My sample application" \
+  -Dsonar.links.ci=https://travis-ci.org/com.mycompany/my-app \
+  -Dsonar.links.issue=https://issues.mycompany.com/browse/MYAPP \
+  -Dsonar.projectName=MY-APP
+```

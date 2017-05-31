@@ -28,6 +28,8 @@ Running SonarQube on Multiple Project (Not Multiple Module)
   * [Step 10) jbossws-cxf-client all-in-one project with code coverage and test results](#step-10-jbossws-cxf-client-all-in-one-project-with-code-coverage-and-test-results)
   * [Step 11) jbossws-cxf server side all-in-one with code coverage and test results](#step-11-jbossws-cxf-server-side-all-in-one-with-code-coverage-and-test-results)
   * [Step 12) WildFly all-in-one with code coverage and test results](#step-12-wildfly-all-in-one-with-code-coverage-and-test-results)
+  * [Step 13) Failsafe plugin, TestNG](#step-13-failsafe-plugin-testng)
+  * [Step 14) Project Configuration Parameters](#step-14-project-configuration-parameters)
 
 Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
 

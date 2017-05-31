@@ -914,6 +914,20 @@ generate_all_in_one
 mvn -f ${WS_INFRA}/${PROJECT}-pom.xml dependency:tree
 
 mvn -f ${WS}/${ALL_IN_PROJECT}/pom.xml  org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.host.url=http://localhost:9000/ -Dsonar.exclusions=**/com/google/common/util/concurrent/Monitor.java,**/org/apache/tools/ant/launch/*.java,**/org/jgroups/protocols/Locking.java  -Dsonar.jacoco.reportPaths=${JACOCO_EXEC} -Dsonar.junit.reportsPath=${TEST_RESULTS}
+```
 
+## Step 13) Failsafe plugin, TestNG
+Failsafe plugin generates reports into `target/failsafe-reports` directory, SonarQube expects `target/surefire-reports` directory.
+This can be redefined using `sonar.junit.reportsPath` property, details in https://github.com/SonarSource/sonar-scanner-maven/blob/master/src/main/java/org/sonarsource/scanner/maven/bootstrap/MavenProjectConverter.java#L99
 
+```bash
+git clone https://github.com/orsenthil/maven-failsafe-example workspace/maven-failsafe-example
+mvn -f workspace/maven-failsafe-example/pom.xml -Dsonar.junit.reportsPath=target/failsafe-reports/ clean integration-test org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
+```
+
+Usage of TestNG is not causing troubles to SonarQube
+```bash
+git clone git@github.com:allure-examples/allure-testng-example.git workspace/allure-testng-example
+mvn -f workspace/allure-testng-example/pom.xml clean test org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar
+## there are test failures but we can ignore them as they are not relevant for this example
 ```

@@ -1,5 +1,8 @@
 # MultipleProjectSonarQube
 Running SonarQube on Multiple Project (Not Multiple Module)
+SonarQube download page is https://www.sonarqube.org/downloads/
+Project code is on GitHub https://github.com/SonarSource/sonarqube/
+All versions are accessible on https://sonarsource.bintray.com/Distribution/sonarqube/
 
 ## Table of Contents
 

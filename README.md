@@ -954,3 +954,23 @@ mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar \
   -Dsonar.links.issue=https://issues.mycompany.com/browse/MYAPP \
   -Dsonar.projectName=MY-APP
 ```
+
+## Appendix A
+SonarQube 6.4-RC3 experiment, version 6.4 is under development.
+No problems noticed, experiments done with Wildfly codebase, tests results and coverage files.
+
+```bash
+wget -O workspace/sonarqube-6.4-RC3.zip https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-6.4-RC3.zip
+unzip -q -d workspace/ workspace/sonarqube-6.4-RC3.zip && rm workspace/sonarqube-6.4-RC3.zip
+
+workspace/sonarqube-6.4-RC3/bin/linux-x86-64/sonar.sh start
+sleep 10
+
+git clone https://github.com/wildfly/wildfly.git workspace/wildfly
+mvn -f workspace/wildfly/pom.xml clean install -DskipTests -Denforcer.skip=true -Dcheckstyle.skip=true
+
+mvn -f workspace/wildfly/pom.xml -DallTests org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar \
+  -Dsonar.host.url=http://localhost:9000/ \
+  -Dsonar.jacoco.reportPaths=/home/rsvoboda/Downloads/jacoco-coverage-files/jacoco-merged.exec \
+  -Dsonar.junit.reportsPath=/home/rsvoboda/Downloads/as-ts-plus-ws-ts-flat
+```

@@ -33,6 +33,7 @@ All versions are accessible on https://sonarsource.bintray.com/Distribution/sona
   * [Step 12) WildFly all-in-one with code coverage and test results](#step-12-wildfly-all-in-one-with-code-coverage-and-test-results)
   * [Step 13) Failsafe plugin, TestNG](#step-13-failsafe-plugin-testng)
   * [Step 14) Project Configuration Parameters](#step-14-project-configuration-parameters)
+  * [Step 15) SonarQube and https](#step-15-sonarqube-and-https)
 
 Created with [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) help.
 
@@ -953,6 +954,22 @@ mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar \
   -Dsonar.links.ci=https://travis-ci.org/com.mycompany/my-app \
   -Dsonar.links.issue=https://issues.mycompany.com/browse/MYAPP \
   -Dsonar.projectName=MY-APP
+```
+
+## Step 15) SonarQube and https
+Once you have SonarQube in production it will be probably configured to run on https to prevent simple network tapping - e.g. for username / password. If the server has certificate signed by public CA you will only need to change `http://` to `https://`. If the server has self-signed certificate or certificate signed by internal CA you will need to change `http://` to `https://` and instrument java to trust that server. To do so you need to get the certificate and import it to JDK truststore. Another option is to get the certificate, import it to separate truststore and instruct java to use that truststore. Second option is better for use-cases when users can't patch JDK installation.
+
+```bash
+echo -n | openssl s_client -connect sonar-server:443 2>/dev/null | sed -ne '/BEGIN CERTIFICATE/,/END CERTIFICATE/p' > sonar-server.crt
+echo "yes" | keytool -import -keystore sonar-truststore.jks -alias sonar-server -file sonar-server.crt -storepass fooBar
+
+mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar \
+  -Dsonar.host.url=https://sonar-server/ \
+  -Dsonar.login=user-name -Dsonar.password=password \
+  -Djavax.net.ssl.trustStore=${WORKSPACE}/sonar-truststore.jks -Djavax.net.ssl.trustStorePassword=fooBar \
+  -Dsonar.jacoco.reportPath=${WORKSPACE}/target/jacoco.exec \
+  -Dsonar.jacoco.itReportPath=${WORKSPACE}/target/jacoco.exec \
+  -Dsonar.jacoco.reportPaths=${WORKSPACE}/target/jacoco.exec ## once SonarQube instance is upgraded to 6.x series
 ```
 
 ## Appendix A
